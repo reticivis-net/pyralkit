@@ -6,6 +6,7 @@ from dateutil.parser import isoparse
 
 from .models import *
 
+
 def pk_message_from_dict(d: dict) -> PKMessage:
     return dacite.from_dict(
         data_class=PKMessage,
