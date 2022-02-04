@@ -1,12 +1,7 @@
 import datetime
-import json
 import typing
 from dataclasses import dataclass
 from enum import Enum
-
-import aiohttp
-import dacite
-from dateutil.parser import isoparse
 
 
 @dataclass
@@ -91,32 +86,72 @@ class PKMessage:
     member: typing.Optional[PKMember] = None
 
 
-def pk_message_from_dict(d: dict) -> PKMessage:
-    return dacite.from_dict(
-        data_class=PKMessage,
-        data=d,
-        config=dacite.Config(
-            type_hooks={datetime.datetime: isoparse, datetime.date: isoparse},
-            cast=[int],
-        ),
-    )
+@dataclass
+class PKGroupPrivacy:
+    # https://pluralkit.me/api/models/#group-model
+    ame_privacy: PKPrivacy = PKPrivacy.public
+    description_privacy: PKPrivacy = PKPrivacy.public
+    icon_privacy: PKPrivacy = PKPrivacy.public
+    list_privacy: PKPrivacy = PKPrivacy.public
+    metadata_privacy: PKPrivacy = PKPrivacy.public
+    visibility: PKPrivacy = PKPrivacy.public
 
 
-async def saveurl(url) -> bytes:
-    """
-    save a url to bytes
-    :param url: web url of a file
-    :return: bytes of result
-    """
-    async with aiohttp.ClientSession(headers={"Connection": "keep-alive"}) as session:
-        async with session.get(url) as resp:
-            if resp.ok:
-                return await resp.read()
-            else:
-                resp.raise_for_status()
+@dataclass
+class PKGroup:
+    # https://pluralkit.me/api/models/#group-model
+    id: str
+    uuid: str
+    name: str
+    display_name: typing.Optional[str] = None
+    description: typing.Optional[str] = None
+    icon: typing.Optional[str] = None
+    banner: typing.Optional[str] = None
+    color: typing.Optional[str] = None
+    privacy: typing.Optional[PKGroupPrivacy] = None
 
 
-async def pk_message_from_message_id(msg_id: int) -> PKMessage:
-    return pk_message_from_dict(
-        json.loads(await saveurl(f"https://api.pluralkit.me/v2/messages/{msg_id}"))
-    )
+@dataclass
+class PKSwitch:
+    # https://pluralkit.me/api/models/#switch-model
+    id: str
+    timestamp: datetime.datetime
+    members: typing.List[typing.Union[str, PKMember]]
+
+
+@dataclass
+class PKSystemSettings:
+    timezone: datetime.timezone
+    pings_enabled: bool
+    latch_timeout: typing.Optional[int]
+    member_default_private: bool
+    group_default_private: bool
+    show_private_info: bool
+    member_limit: int = 1000
+    group_limit: int = 250
+
+
+class PKAutoproxyMode(Enum):
+    # https://pluralkit.me/api/models/#autoproxy-mode-enum
+    off = "off"
+    front = "front"
+    latch = "latch"
+    member = "member"
+
+
+@dataclass
+class PKSystemGuildSettings:
+    # https://pluralkit.me/api/models/#system-guild-settings-model
+    guild_id: int
+    proxying_enabled: bool
+    tag_enabled: bool
+    autoproxy_mode: PKAutoproxyMode
+    autoproxy_member: typing.Optional[str] = None
+    tag: typing.Optional[str] = None
+
+
+@dataclass
+class PKMemberGuildSettings:
+    guild_id: int
+    display_name: typing.Optional[str] = None
+    avatar_url: typing.Optional[str] = None
