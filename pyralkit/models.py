@@ -11,7 +11,7 @@ class PKProxyTag:
     suffix: typing.Optional[str] = None
 
 
-class PKPrivacy(Enum):
+class PKPrivacy(str, Enum):
     # https://pluralkit.me/api/models/#models
     public = "public"
     private = "private"
@@ -20,11 +20,19 @@ class PKPrivacy(Enum):
 @dataclass
 class PKSystemPrivacy:
     # https://pluralkit.me/api/models/#system-model
-    description_privacy: PKPrivacy = PKPrivacy.public
-    member_list_privacy: PKPrivacy = PKPrivacy.public
-    group_list_privacy: PKPrivacy = PKPrivacy.public
-    front_privacy: PKPrivacy = PKPrivacy.public
-    front_history_privacy: PKPrivacy = PKPrivacy.public
+    description_privacy: PKPrivacy
+    member_list_privacy: PKPrivacy
+    group_list_privacy: PKPrivacy
+    front_privacy: PKPrivacy
+    front_history_privacy: PKPrivacy
+
+    @classmethod
+    def all_public(cls):
+        return cls(*([PKPrivacy.public] * 5))
+
+    @classmethod
+    def all_private(cls):
+        return cls(*([PKPrivacy.private] * 5))
 
 
 @dataclass
@@ -32,9 +40,9 @@ class PKSystem:
     # https://pluralkit.me/api/models/#system-model
     id: str
     uuid: str
-    name: str
-    tag: str
     created: datetime.datetime
+    name: typing.Optional[str] = None
+    tag: typing.Optional[str] = None
     color: typing.Optional[str] = None
     description: typing.Optional[str] = None
     avatar_url: typing.Optional[str] = None
@@ -45,13 +53,21 @@ class PKSystem:
 @dataclass
 class PKMemberPrivacy:
     # https://pluralkit.me/api/models/#member-model
-    visibility: PKPrivacy = PKPrivacy.public
-    name_privacy: PKPrivacy = PKPrivacy.public
-    description_privacy: PKPrivacy = PKPrivacy.public
-    birthday_privacy: PKPrivacy = PKPrivacy.public
-    pronoun_privacy: PKPrivacy = PKPrivacy.public
-    avatar_privacy: PKPrivacy = PKPrivacy.public
-    metadata_privacy: PKPrivacy = PKPrivacy.public
+    visibility: PKPrivacy
+    name_privacy: PKPrivacy
+    description_privacy: PKPrivacy
+    birthday_privacy: PKPrivacy
+    pronoun_privacy: PKPrivacy
+    avatar_privacy: PKPrivacy
+    metadata_privacy: PKPrivacy
+
+    @classmethod
+    def all_public(cls):
+        return cls(*([PKPrivacy.public] * 7))
+
+    @classmethod
+    def all_private(cls):
+        return cls(*([PKPrivacy.private] * 7))
 
 
 @dataclass
@@ -89,12 +105,20 @@ class PKMessage:
 @dataclass
 class PKGroupPrivacy:
     # https://pluralkit.me/api/models/#group-model
-    ame_privacy: PKPrivacy = PKPrivacy.public
-    description_privacy: PKPrivacy = PKPrivacy.public
-    icon_privacy: PKPrivacy = PKPrivacy.public
-    list_privacy: PKPrivacy = PKPrivacy.public
-    metadata_privacy: PKPrivacy = PKPrivacy.public
-    visibility: PKPrivacy = PKPrivacy.public
+    ame_privacy: PKPrivacy
+    description_privacy: PKPrivacy
+    icon_privacy: PKPrivacy
+    list_privacy: PKPrivacy
+    metadata_privacy: PKPrivacy
+    visibility: PKPrivacy
+
+    @classmethod
+    def all_public(cls):
+        return cls(*([PKPrivacy.public] * 6))
+
+    @classmethod
+    def all_private(cls):
+        return cls(*([PKPrivacy.private] * 6))
 
 
 @dataclass
@@ -121,7 +145,8 @@ class PKSwitch:
 
 @dataclass
 class PKSystemSettings:
-    timezone: datetime.timezone
+    # https://pluralkit.me/api/models/#system-settings-model
+    timezone: str
     pings_enabled: bool
     latch_timeout: typing.Optional[int]
     member_default_private: bool
@@ -131,7 +156,7 @@ class PKSystemSettings:
     group_limit: int = 250
 
 
-class PKAutoproxyMode(Enum):
+class PKAutoproxyMode(str, Enum):
     # https://pluralkit.me/api/models/#autoproxy-mode-enum
     off = "off"
     front = "front"
@@ -152,6 +177,7 @@ class PKSystemGuildSettings:
 
 @dataclass
 class PKMemberGuildSettings:
+    # https://pluralkit.me/api/models/#member-guild-settings-model
     guild_id: int
     display_name: typing.Optional[str] = None
     avatar_url: typing.Optional[str] = None
