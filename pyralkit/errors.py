@@ -8,6 +8,10 @@ class PKException(Exception):
     """
 
 
+class PKFailed(PKException):
+    """Generic fail"""
+
+
 class NotAuthorized(PKException):
     """Raised when user attempts to do something that requires authorization, but they aren't authorized."""
 

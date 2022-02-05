@@ -105,7 +105,7 @@ class PKMessage:
 @dataclass
 class PKGroupPrivacy:
     # https://pluralkit.me/api/models/#group-model
-    ame_privacy: PKPrivacy
+    name_privacy: PKPrivacy
     description_privacy: PKPrivacy
     icon_privacy: PKPrivacy
     list_privacy: PKPrivacy
