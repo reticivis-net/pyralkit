@@ -45,14 +45,14 @@ class PKClient:
         await self._session.close()
 
     async def _request(
-            self, method: str, endpoint: str, payload: typing.Optional[dict] = None
+        self, method: str, endpoint: str, payload: typing.Optional[dict] = None
     ):
         # if self._retry_at:
         #     print(f"new request encountering existing wait.")
         #     await wait_until(self._retry_at)
         async with self._limiter:
             async with self._session.request(
-                    method, f"https://api.pluralkit.me/v2/{endpoint}", json=payload
+                method, f"https://api.pluralkit.me/v2/{endpoint}", json=payload
             ) as resp:
                 if resp.ok:
                     return await resp.read()
@@ -82,6 +82,8 @@ class PKClient:
                         )
                     resp.raise_for_status()
 
+    # SYSTEM
+
     async def get_system(self, system_ref: typing.Union[str, int] = "@me") -> PKSystem:
         """
         https://pluralkit.me/api/endpoints/#get-system
@@ -96,16 +98,16 @@ class PKClient:
 
     @authorized_only
     async def update_system(
-            self,
-            system_ref: typing.Union[str, int] = "@me",
-            *,
-            name: typing.Optional[str] = MISSING,
-            tag: typing.Optional[str] = MISSING,
-            color: typing.Optional[str] = MISSING,
-            description: typing.Optional[str] = MISSING,
-            avatar_url: typing.Optional[str] = MISSING,
-            banner: typing.Optional[str] = MISSING,
-            privacy: typing.Optional[PKSystemPrivacy] = MISSING,
+        self,
+        system_ref: typing.Union[str, int] = "@me",
+        *,
+        name: typing.Optional[str] = MISSING,
+        tag: typing.Optional[str] = MISSING,
+        color: typing.Optional[str] = MISSING,
+        description: typing.Optional[str] = MISSING,
+        avatar_url: typing.Optional[str] = MISSING,
+        banner: typing.Optional[str] = MISSING,
+        privacy: typing.Optional[PKSystemPrivacy] = MISSING,
     ) -> PKSystem:
         """
         https://pluralkit.me/api/endpoints/#update-system
@@ -142,7 +144,7 @@ class PKClient:
         )
 
     async def get_system_settings(
-            self, system_ref: typing.Union[str, int] = "@me"
+        self, system_ref: typing.Union[str, int] = "@me"
     ) -> PKSystemSettings:
         """
         https://pluralkit.me/api/endpoints/#get-system-settings
@@ -157,15 +159,15 @@ class PKClient:
         )
 
     async def update_system_settings(
-            self,
-            system_ref: typing.Union[str, int] = "@me",
-            *,
-            timezone: str = MISSING,
-            pings_enabled: bool = MISSING,
-            latch_timeout: typing.Optional[int] = MISSING,
-            member_default_private: bool = MISSING,
-            group_default_private: bool = MISSING,
-            show_private_info: bool = MISSING,
+        self,
+        system_ref: typing.Union[str, int] = "@me",
+        *,
+        timezone: str = MISSING,
+        pings_enabled: bool = MISSING,
+        latch_timeout: typing.Optional[int] = MISSING,
+        member_default_private: bool = MISSING,
+        group_default_private: bool = MISSING,
+        show_private_info: bool = MISSING,
     ) -> PKSystemSettings:
         """
 
@@ -201,7 +203,7 @@ class PKClient:
 
     @authorized_only
     async def get_system_guild_settings(
-            self, guild_id: int, system_ref: typing.Union[str, int] = "@me"
+        self, guild_id: int, system_ref: typing.Union[str, int] = "@me"
     ) -> typing.Optional[PKSystemGuildSettings]:
         """
         https://pluralkit.me/api/endpoints/#get-system-guild-settings
@@ -224,15 +226,15 @@ class PKClient:
 
     @authorized_only
     async def update_system_guild_settings(
-            self,
-            guild_id: int,
-            system_ref: typing.Union[str, int] = "@me",
-            *,
-            proxying_enabled: bool = MISSING,
-            tag_enabled: bool = MISSING,
-            autoproxy_mode: PKAutoproxyMode = MISSING,
-            autoproxy_member: typing.Optional[str] = MISSING,
-            tag: typing.Optional[str] = MISSING,
+        self,
+        guild_id: int,
+        system_ref: typing.Union[str, int] = "@me",
+        *,
+        proxying_enabled: bool = MISSING,
+        tag_enabled: bool = MISSING,
+        autoproxy_mode: PKAutoproxyMode = MISSING,
+        autoproxy_member: typing.Optional[str] = MISSING,
+        tag: typing.Optional[str] = MISSING,
     ) -> typing.Optional[PKSystemGuildSettings]:
         """
         https://pluralkit.me/api/endpoints/#update-system-guild-settings
@@ -269,8 +271,10 @@ class PKClient:
             {"guild_id": guild_id},
         )
 
+    # MEMBERS
+
     async def get_system_members(
-            self, system_ref: typing.Union[str, int] = "@me"
+        self, system_ref: typing.Union[str, int] = "@me"
     ) -> typing.List[PKMember]:
         """
         https://pluralkit.me/api/endpoints/#get-system-members
@@ -282,3 +286,189 @@ class PKClient:
         return parse_list_bytes_to_obj(
             await self._request("GET", f"systems/{system_ref}/members"), PKMember
         )
+
+    async def create_member(
+        self,
+        name: str,
+        *,
+        proxy_tags: typing.List[PKProxyTag] = MISSING,
+        keep_proxy: bool = MISSING,
+        color: typing.Optional[str] = MISSING,
+        privacy: typing.Optional[PKMemberPrivacy] = MISSING,
+        display_name: typing.Optional[str] = MISSING,
+        birthday: typing.Optional[datetime.date] = MISSING,
+        pronouns: typing.Optional[str] = MISSING,
+        avatar_url: typing.Optional[str] = MISSING,
+        banner: typing.Optional[str] = MISSING,
+        description: typing.Optional[str] = MISSING,
+    ) -> PKMember:
+        raise NotImplementedError
+
+    async def get_member(self, member_ref: str) -> PKMember:
+        raise NotImplementedError
+
+    async def update_member(
+        self,
+        member_ref: str,
+        *,
+        name: str = MISSING,
+        proxy_tags: typing.List[PKProxyTag] = MISSING,
+        keep_proxy: bool = MISSING,
+        color: typing.Optional[str] = MISSING,
+        privacy: typing.Optional[PKMemberPrivacy] = MISSING,
+        display_name: typing.Optional[str] = MISSING,
+        birthday: typing.Optional[datetime.date] = MISSING,
+        pronouns: typing.Optional[str] = MISSING,
+        avatar_url: typing.Optional[str] = MISSING,
+        banner: typing.Optional[str] = MISSING,
+        description: typing.Optional[str] = MISSING,
+    ):
+        raise NotImplementedError
+
+    async def delete_member(self, member_ref: str):
+        raise NotImplementedError
+
+    async def get_member_groups(self, member_ref: str) -> typing.List[PKGroup]:
+        raise NotImplementedError
+
+    async def add_member_to_groups(self, member_ref: str, *groups: str):
+        raise NotImplementedError
+
+    async def remove_member_from_groups(self, member_ref: str, *groups: str):
+        raise NotImplementedError
+
+    async def overwrite_member_groups(self, member_ref: str, groups: typing.List[str]):
+        raise NotImplementedError
+
+    async def get_member_guild_settings(
+        self, member_ref: str, guild_id: int
+    ) -> PKMemberGuildSettings:
+        raise NotImplementedError
+
+    async def update_member_guild_settings(
+        self,
+        member_ref: str,
+        guild_id: int,
+        *,
+        display_name: typing.Optional[str] = MISSING,
+        avatar_url: typing.Optional[str] = MISSING,
+    ) -> PKMemberGuildSettings:
+        raise NotImplementedError
+
+    # GROUPS
+
+    async def get_system_groups(
+        self, system_ref: typing.Union[str, int] = "@me", with_members: bool = False
+    ) -> typing.List[PKGroup]:
+        raise NotImplementedError
+
+    async def create_group(
+        self,
+        name: str,
+        *,
+        display_name: typing.Optional[str] = MISSING,
+        description: typing.Optional[str] = MISSING,
+        icon: typing.Optional[str] = MISSING,
+        banner: typing.Optional[str] = MISSING,
+        color: typing.Optional[str] = MISSING,
+        privacy: typing.Optional[PKGroupPrivacy] = MISSING,
+    ) -> PKGroup:
+        raise NotImplementedError
+
+    async def get_group(self, group_ref: str) -> PKGroup:
+        raise NotImplementedError
+
+    async def update_group(
+        self,
+        group_ref: str,
+        *,
+        name: str = MISSING,
+        display_name: typing.Optional[str] = MISSING,
+        description: typing.Optional[str] = MISSING,
+        icon: typing.Optional[str] = MISSING,
+        banner: typing.Optional[str] = MISSING,
+        color: typing.Optional[str] = MISSING,
+        privacy: typing.Optional[PKGroupPrivacy] = MISSING,
+    ) -> PKGroup:
+        raise NotImplementedError
+
+    async def delete_group(self, group_ref: str):
+        raise NotImplementedError
+
+    async def get_group_members(self, group_ref: str) -> typing.List[PKMember]:
+        raise NotImplementedError
+
+    async def add_members_to_groups(self, group_ref: str, *members: str):
+        raise NotImplementedError
+
+    async def remove_members_from_groups(self, group_ref: str, *members: str):
+        raise NotImplementedError
+
+    async def overwrite_group_members(self, group_ref: str, members: typing.List[str]):
+        raise NotImplementedError
+
+    # SWITCHES
+
+    async def get_system_switches(
+        self,
+        system_ref: typing.Union[str, int] = "@me",
+        before: typing.Optional[datetime.datetime] = None,
+        limit: typing.Optional[int] = None,
+    ) -> PKSwitch:
+        raise NotImplementedError
+
+    async def get_current_system_fronters(
+        self, system_ref: typing.Union[str, int] = "@me"
+    ) -> typing.List[PKMember]:
+        raise NotImplementedError
+
+    async def create_switch(
+        self,
+        members: typing.List[str],
+        system_ref: typing.Union[str, int] = "@me",
+        timestamp: typing.Optional[datetime.datetime] = None,
+    ) -> PKSwitch:
+        raise NotImplementedError
+
+    async def get_switch(
+        self, switch_ref: str, system_ref: typing.Union[str, int] = "@me"
+    ) -> PKSwitch:
+        raise NotImplementedError
+
+    async def update_switch(
+        self,
+        switch_ref: str,
+        timestamp: datetime.datetime,
+        system_ref: typing.Union[str, int] = "@me",
+    ) -> PKSwitch:
+        raise NotImplementedError
+
+    async def update_switch_members(
+        self,
+        switch_ref: str,
+        members: typing.List[str],
+        system_ref: typing.Union[str, int] = "@me",
+    ) -> PKSwitch:
+        raise NotImplementedError
+
+    async def delete_switch(
+        self, switch_ref: str, system_ref: typing.Union[str, int] = "@me"
+    ):
+        raise NotImplementedError
+
+    # MISC
+
+    async def get_proxied_message_information(
+        self, messageid: int
+    ) -> typing.Optional[PKMessage]:
+        """
+        https://pluralkit.me/api/endpoints/#misc
+        :param messageid: the ID of a proxied message, or the ID of the message that sent the proxy.
+        :return: message object or None if not found.
+        """
+        try:
+            return parse_bytes_to_obj(
+                await self._request("GET", f"messages/{messageid}"), PKMessage
+            )
+        except PKNotFound:
+            return None

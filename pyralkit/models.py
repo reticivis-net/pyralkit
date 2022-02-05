@@ -133,6 +133,8 @@ class PKGroup:
     banner: typing.Optional[str] = None
     color: typing.Optional[str] = None
     privacy: typing.Optional[PKGroupPrivacy] = None
+    # https://pluralkit.me/api/endpoints/#get-system-groups
+    members: typing.Optional[typing.List[str]] = None
 
 
 @dataclass
