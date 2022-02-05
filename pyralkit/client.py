@@ -1,10 +1,30 @@
+import asyncio
 import dataclasses
+import functools
 from dataclasses import MISSING
 
 import aiohttp
 from aiolimiter import AsyncLimiter
 
+from .errors import *
 from .utils import *
+
+
+def authorized_only(func):
+    @functools.wraps(func)
+    async def wrap(self, *args, **kwargs):
+        if self._authenticated:
+            return await func(self, *args, **kwargs)
+        else:
+            raise NotAuthorized()
+
+    return wrap
+
+
+async def wait_until(dt):
+    # sleep until the specified datetime
+    now = datetime.datetime.now()
+    await asyncio.sleep((dt - now).total_seconds())
 
 
 class PKClient:
@@ -18,10 +38,18 @@ class PKClient:
         )
         # https://pluralkit.me/api/#rate-limiting
         self._limiter = AsyncLimiter(2, 1)
+        # limit concurrency to handle 429s
+        # self._retry_at: typing.Optional[datetime.datetime] = None
+
+    async def close(self):
+        await self._session.close()
 
     async def _request(
             self, method: str, endpoint: str, payload: typing.Optional[dict] = None
     ):
+        # if self._retry_at:
+        #     print(f"new request encountering existing wait.")
+        #     await wait_until(self._retry_at)
         async with self._limiter:
             async with self._session.request(
                     method, f"https://api.pluralkit.me/v2/{endpoint}", json=payload
@@ -29,6 +57,29 @@ class PKClient:
                 if resp.ok:
                     return await resp.read()
                 else:
+                    data = await resp.read()
+                    if data:
+                        if resp.status == 429:
+                            # dev says despite the 429 docs existing there is no actual rate limiting besides default
+                            # nginx limiting which has no retry-after handler
+                            resp.raise_for_status()
+                        data = json.loads(data)
+                        # if resp.status == 429:
+                        #     self._retry_at = (
+                        #         datetime.datetime.utcnow()
+                        #         + datetime.timedelta(
+                        #             milliseconds=data["retry_after"]
+                        #         )
+                        #     )
+                        #     print(
+                        #         f"got 429, retrying in {data['retry_after']/1000}s"
+                        #     )
+                        #     await wait_until(self._retry_at)
+                        #     continue  # all is wrapped in while loop, will try again
+                        data["http_code"] = resp.status
+                        raise parse_dict_to_obj(
+                            data, http_errors.get(resp.status, ErrorResponse)
+                        )
                     resp.raise_for_status()
 
     async def get_system(self, system_ref: typing.Union[str, int]) -> PKSystem:
@@ -40,9 +91,10 @@ class PKClient:
         :return: A system object
         """
         return parse_bytes_to_obj(
-            await self._request("GET", f"/systems/{system_ref}"), PKSystem
+            await self._request("GET", f"systems/{system_ref}"), PKSystem
         )
 
+    @authorized_only
     async def update_system(
             self,
             system_ref: typing.Union[str, int],
@@ -86,7 +138,7 @@ class PKClient:
             )
 
         return parse_bytes_to_obj(
-            await self._request("PATCH", f"/systems/{system_ref}", payload), PKSystem
+            await self._request("PATCH", f"systems/{system_ref}", payload), PKSystem
         )
 
     async def get_system_settings(
@@ -100,6 +152,13 @@ class PKClient:
         :return: A system settings object
         """
         return parse_bytes_to_obj(
-            await self._request("GET", f"/systems/{system_ref}/settings"),
+            await self._request("GET", f"systems/{system_ref}/settings"),
             PKSystemSettings,
+        )
+
+    @authorized_only
+    async def get_system_guild_settings(self, guildid: int) -> PKSystemGuildSettings:
+        return parse_bytes_to_obj(
+            await self._request("GET", f"systems/@me/guilds/{guildid}"),
+            PKSystemGuildSettings,
         )

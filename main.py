@@ -6,8 +6,10 @@ from pktoken import pktoken
 
 async def main():
     client = pyralkit.PKClient(pktoken)
-    system = await client.get_system_settings("@me")
-    print(system)
+    try:
+        await client.update_system("nehqw", name="fdf")
+    finally:
+        await client.close()
 
 
 # Python 3.7+
