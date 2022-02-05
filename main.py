@@ -7,10 +7,10 @@ from pktoken import pktoken
 async def main():
     client = pyralkit.PKClient(pktoken)
     try:
-        await client.update_system("nehqw", name="fdf")
+        print(thing := await client.get_system_members())
+        thing
     finally:
         await client.close()
 
 
-# Python 3.7+
-asyncio.run(main())
+asyncio.get_event_loop().run_until_complete(main())

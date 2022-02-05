@@ -63,7 +63,6 @@ class PKClient:
                             # dev says despite the 429 docs existing there is no actual rate limiting besides default
                             # nginx limiting which has no retry-after handler
                             resp.raise_for_status()
-                        data = json.loads(data)
                         # if resp.status == 429:
                         #     self._retry_at = (
                         #         datetime.datetime.utcnow()
@@ -76,13 +75,14 @@ class PKClient:
                         #     )
                         #     await wait_until(self._retry_at)
                         #     continue  # all is wrapped in while loop, will try again
-                        data["http_code"] = resp.status
-                        raise parse_dict_to_obj(
-                            data, http_errors.get(resp.status, ErrorResponse)
+                        raise parse_bytes_to_obj(
+                            data,
+                            http_errors.get(resp.status, ErrorResponse),
+                            {"http_code": resp.status},
                         )
                     resp.raise_for_status()
 
-    async def get_system(self, system_ref: typing.Union[str, int]) -> PKSystem:
+    async def get_system(self, system_ref: typing.Union[str, int] = "@me") -> PKSystem:
         """
         https://pluralkit.me/api/endpoints/#get-system
 
@@ -97,7 +97,7 @@ class PKClient:
     @authorized_only
     async def update_system(
             self,
-            system_ref: typing.Union[str, int],
+            system_ref: typing.Union[str, int] = "@me",
             *,
             name: typing.Optional[str] = MISSING,
             tag: typing.Optional[str] = MISSING,
@@ -142,7 +142,7 @@ class PKClient:
         )
 
     async def get_system_settings(
-            self, system_ref: typing.Union[str, int]
+            self, system_ref: typing.Union[str, int] = "@me"
     ) -> PKSystemSettings:
         """
         https://pluralkit.me/api/endpoints/#get-system-settings
@@ -156,9 +156,129 @@ class PKClient:
             PKSystemSettings,
         )
 
-    @authorized_only
-    async def get_system_guild_settings(self, guildid: int) -> PKSystemGuildSettings:
+    async def update_system_settings(
+            self,
+            system_ref: typing.Union[str, int] = "@me",
+            *,
+            timezone: str = MISSING,
+            pings_enabled: bool = MISSING,
+            latch_timeout: typing.Optional[int] = MISSING,
+            member_default_private: bool = MISSING,
+            group_default_private: bool = MISSING,
+            show_private_info: bool = MISSING,
+    ) -> PKSystemSettings:
+        """
+
+        :param system_ref: can be a system's short (5-character) ID, a system's UUID, the ID of a Discord account
+            linked to the system, or the string @me to refer to the currently authenticated system.
+        :param timezone: system's IANA timezone
+        :param pings_enabled: if reaction pings are enabled
+        :param latch_timeout: The latch timeout duration for your system.
+        :param member_default_private: whether members created through the bot have privacy settings set to private by
+            default
+        :param group_default_private: whether groups created through the bot have privacy settings set to private by
+            default
+        :param show_private_info: whether the bot shows the system's own private information without a -private flag
+        :return: a system settings object
+        """
+        payload = {}
+        if timezone is not MISSING:
+            payload["timezone"] = timezone
+        if pings_enabled is not MISSING:
+            payload["pings_enabled"] = pings_enabled
+        if latch_timeout is not MISSING:
+            payload["latch_timeout"] = latch_timeout
+        if member_default_private is not MISSING:
+            payload["member_default_private"] = member_default_private
+        if group_default_private is not MISSING:
+            payload["group_default_private"] = group_default_private
+        if show_private_info is not MISSING:
+            payload["show_private_info"] = show_private_info
         return parse_bytes_to_obj(
-            await self._request("GET", f"systems/@me/guilds/{guildid}"),
+            await self._request("PATCH", f"systems/{system_ref}/settings", payload),
+            PKSystemSettings,
+        )
+
+    @authorized_only
+    async def get_system_guild_settings(
+            self, guild_id: int, system_ref: typing.Union[str, int] = "@me"
+    ) -> typing.Optional[PKSystemGuildSettings]:
+        """
+        https://pluralkit.me/api/endpoints/#get-system-guild-settings
+
+        You must already have updated per-guild settings for your system in the target guild before being able to get
+        or update them from the API.
+        :param guild_id: ID of guild
+        :param system_ref: can be a system's short (5-character) ID, a system's UUID, the ID of a Discord account
+            linked to the system, or the string @me to refer to the currently authenticated system.
+        :return: a system guild settings object or None if not found
+        """
+        try:
+            return parse_bytes_to_obj(
+                await self._request("GET", f"systems/{system_ref}/guilds/{guild_id}"),
+                PKSystemGuildSettings,
+                {"guild_id": guild_id},
+            )
+        except PKNotFound:
+            return None
+
+    @authorized_only
+    async def update_system_guild_settings(
+            self,
+            guild_id: int,
+            system_ref: typing.Union[str, int] = "@me",
+            *,
+            proxying_enabled: bool = MISSING,
+            tag_enabled: bool = MISSING,
+            autoproxy_mode: PKAutoproxyMode = MISSING,
+            autoproxy_member: typing.Optional[str] = MISSING,
+            tag: typing.Optional[str] = MISSING,
+    ) -> typing.Optional[PKSystemGuildSettings]:
+        """
+        https://pluralkit.me/api/endpoints/#update-system-guild-settings
+
+        You must already have updated per-guild settings for your system in the target guild before being able to get
+        or update them from the API.
+        :param guild_id: ID of guild
+        :param system_ref: can be a system's short (5-character) ID, a system's UUID, the ID of a Discord account
+            linked to the system, or the string @me to refer to the currently authenticated system.
+        :param proxying_enabled:
+        :param tag_enabled:
+        :param autoproxy_mode:
+        :param autoproxy_member:
+        :param tag:
+        :return: a system guild settings object or None if not found
+        """
+        payload = {}
+        if proxying_enabled is not MISSING:
+            payload["proxying_enabled"] = proxying_enabled
+        if tag_enabled is not MISSING:
+            payload["tag_enabled"] = tag_enabled
+        if autoproxy_mode is not MISSING:
+            payload["autoproxy_mode"] = autoproxy_mode
+        if autoproxy_member is not MISSING:
+            payload["autoproxy_member"] = autoproxy_member
+        if tag is not MISSING:
+            payload["tag"] = tag
+
+        return parse_bytes_to_obj(
+            await self._request(
+                "PATCH", f"systems/{system_ref}/guilds/{guild_id}", payload
+            ),
             PKSystemGuildSettings,
+            {"guild_id": guild_id},
+        )
+
+    async def get_system_members(
+            self, system_ref: typing.Union[str, int] = "@me"
+    ) -> typing.List[PKMember]:
+        """
+        https://pluralkit.me/api/endpoints/#get-system-members
+
+        :param system_ref: can be a system's short (5-character) ID, a system's UUID, the ID of a Discord account
+            linked to the system, or the string @me to refer to the currently authenticated system.
+        :return: A list of member objects
+        """
+        return parse_list_bytes_to_obj(
+            await self._request("GET", f"systems/{system_ref}/members"), PKMember
         )
