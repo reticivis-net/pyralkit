@@ -12,7 +12,7 @@ class PKFailed(PKException):
     """Generic fail"""
 
 
-class NotAuthorized(PKException):
+class PKNotAuthorized(PKException):
     """Raised when user attempts to do something that requires authorization, but they aren't authorized."""
 
     def __init__(self):
@@ -20,7 +20,7 @@ class NotAuthorized(PKException):
 
 
 @dataclass
-class ErrorObject:
+class PKErrorObject:
     """https://pluralkit.me/api/errors/#error-object"""
 
     message: str
@@ -29,13 +29,13 @@ class ErrorObject:
 
 
 @dataclass
-class ErrorResponse(PKException):
+class PKErrorResponse(PKException):
     """https://pluralkit.me/api/errors/#error-response-model"""
 
     code: int
     message: str
     http_code: int
-    errors: typing.Optional[typing.List[ErrorObject]] = None
+    errors: typing.Optional[typing.List[PKErrorObject]] = None
     retry_after: typing.Optional[int] = None
 
     def __post_init__(self):
@@ -43,7 +43,7 @@ class ErrorResponse(PKException):
 
 
 @dataclass
-class PKBadRequest(ErrorResponse):
+class PKBadRequest(PKErrorResponse):
     """HTTP 400"""
 
     http_code: int = 400
@@ -51,7 +51,7 @@ class PKBadRequest(ErrorResponse):
 
 
 @dataclass
-class PKUnauthorized(ErrorResponse):
+class PKUnauthorized(PKErrorResponse):
     """HTTP 401"""
 
     http_code: int = 401
@@ -59,7 +59,7 @@ class PKUnauthorized(ErrorResponse):
 
 
 @dataclass
-class PKForbidden(ErrorResponse):
+class PKForbidden(PKErrorResponse):
     """HTTP 403"""
 
     http_code: int = 403
@@ -67,7 +67,7 @@ class PKForbidden(ErrorResponse):
 
 
 @dataclass
-class PKNotFound(ErrorResponse):
+class PKNotFound(PKErrorResponse):
     """HTTP 404"""
 
     http_code: int = 404

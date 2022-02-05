@@ -16,7 +16,7 @@ def authorized_only(func):
         if self._authenticated:
             return await func(self, *args, **kwargs)
         else:
-            raise NotAuthorized()
+            raise PKNotAuthorized()
 
     return wrap
 
@@ -88,7 +88,7 @@ class PKClient:
                         #     continue  # all is wrapped in while loop, will try again
                         raise parse_bytes_to_obj(
                             data,
-                            http_errors.get(resp.status, ErrorResponse),
+                            http_errors.get(resp.status, PKErrorResponse),
                             {"http_code": resp.status},
                         )
                     resp.raise_for_status()
@@ -169,6 +169,7 @@ class PKClient:
             PKSystemSettings,
         )
 
+    @authorized_only
     async def update_system_settings(
         self,
         system_ref: typing.Union[str, int] = "@me",
@@ -298,6 +299,7 @@ class PKClient:
             await self._request("GET", f"systems/{system_ref}/members"), PKMember
         )
 
+    @authorized_only
     async def create_member(
         self,
         name: str,
@@ -372,6 +374,7 @@ class PKClient:
             PKMember,
         )
 
+    @authorized_only
     async def update_member(
         self,
         member_ref: str,
@@ -439,6 +442,7 @@ class PKClient:
             PKMember,
         )
 
+    @authorized_only
     async def delete_member(self, member_ref: str):
         """
         https://pluralkit.me/api/endpoints/#delete-member
@@ -463,6 +467,7 @@ class PKClient:
             PKGroup,
         )
 
+    @authorized_only
     async def add_member_to_groups(self, member_ref: str, *groups: str):
         """
         https://pluralkit.me/api/endpoints/#add-member-to-groups
@@ -479,6 +484,7 @@ class PKClient:
         else:
             raise PKFailed(f"Request failed with code {ret[1]}: {ret[0]}")
 
+    @authorized_only
     async def remove_member_from_groups(self, member_ref: str, *groups: str):
         """
         https://pluralkit.me/api/endpoints/#remove-member-from-groups
@@ -496,6 +502,7 @@ class PKClient:
         else:
             raise PKFailed(f"Request failed with code {ret[1]}: {ret[0]}")
 
+    @authorized_only
     async def overwrite_member_groups(self, member_ref: str, groups: typing.List[str]):
         """
         https://pluralkit.me/api/endpoints/#overwrite-member-groups
@@ -529,6 +536,7 @@ class PKClient:
             PKMemberGuildSettings,
         )
 
+    @authorized_only
     async def update_member_guild_settings(
         self,
         member_ref: str,
@@ -580,6 +588,7 @@ class PKClient:
             PKGroup,
         )
 
+    @authorized_only
     async def create_group(
         self,
         name: str,
@@ -636,6 +645,7 @@ class PKClient:
             PKGroup,
         )
 
+    @authorized_only
     async def update_group(
         self,
         group_ref: str,
@@ -684,6 +694,7 @@ class PKClient:
             PKGroup,
         )
 
+    @authorized_only
     async def delete_group(self, group_ref: str):
         """
         https://pluralkit.me/api/endpoints/#delete-group
@@ -710,6 +721,7 @@ class PKClient:
             PKMember,
         )
 
+    @authorized_only
     async def add_members_to_groups(self, group_ref: str, *members: str):
         """
         https://pluralkit.me/api/endpoints/#add-members-to-group
@@ -726,6 +738,7 @@ class PKClient:
         else:
             raise PKFailed(f"Request failed with code {ret[1]}: {ret[0]}")
 
+    @authorized_only
     async def remove_members_from_groups(self, group_ref: str, *members: str):
         """
         https://pluralkit.me/api/endpoints/#remove-member-from-group
@@ -743,6 +756,7 @@ class PKClient:
         else:
             raise PKFailed(f"Request failed with code {ret[1]}: {ret[0]}")
 
+    @authorized_only
     async def overwrite_group_members(self, group_ref: str, members: typing.List[str]):
         """
         https://pluralkit.me/api/endpoints/#overwrite-group-members
@@ -812,6 +826,7 @@ class PKClient:
         else:
             return None
 
+    @authorized_only
     async def create_switch(
         self,
         members: typing.List[str],
@@ -854,6 +869,7 @@ class PKClient:
             PKSwitch,
         )
 
+    @authorized_only
     async def update_switch(
         self,
         switch_ref: str,
@@ -877,6 +893,7 @@ class PKClient:
             PKSwitch,
         )
 
+    @authorized_only
     async def update_switch_members(
         self,
         switch_ref: str,
@@ -899,6 +916,7 @@ class PKClient:
             PKSwitch,
         )
 
+    @authorized_only
     async def delete_switch(
         self, switch_ref: str, system_ref: typing.Union[str, int] = "@me"
     ):
