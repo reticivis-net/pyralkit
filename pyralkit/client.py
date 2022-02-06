@@ -21,7 +21,7 @@ def authorized_only(func):
     return wrap
 
 
-async def wait_until(dt):
+async def _wait_until(dt):
     # sleep until the specified datetime
     now = datetime.datetime.now()
     await asyncio.sleep((dt - now).total_seconds())
@@ -29,6 +29,10 @@ async def wait_until(dt):
 
 class PKClient:
     def __init__(self, token: typing.Optional[str] = None):
+        """
+        the base class of PyralKit, handling all requests and ratelimiting.
+        :param token: optionally authorize requests with a PluralKit token. required for most methods.
+        """
         headers = {"Connection": "keep-alive", "Content-Type": "application/json"}
         self._authenticated = token is not None
         if self._authenticated:
@@ -42,6 +46,9 @@ class PKClient:
         # self._retry_at: typing.Optional[datetime.datetime] = None
 
     async def close(self):
+        """
+        close the underlying aiohttp session
+        """
         await self._session.close()
 
     async def _request(
@@ -122,6 +129,7 @@ class PKClient:
     ) -> PKSystem:
         """
         https://pluralkit.me/api/endpoints/#update-system
+
         :param system_ref: can be a system's short (5-character) ID, a system's UUID, the ID of a Discord account
             linked to the system, or the string @me to refer to the currently authenticated system.
         :param name: system's name
@@ -182,6 +190,7 @@ class PKClient:
         show_private_info: bool = MISSING,
     ) -> PKSystemSettings:
         """
+        https://pluralkit.me/api/endpoints/#update-system-settings
 
         :param system_ref: can be a system's short (5-character) ID, a system's UUID, the ID of a Discord account
             linked to the system, or the string @me to refer to the currently authenticated system.
@@ -222,6 +231,7 @@ class PKClient:
 
         You must already have updated per-guild settings for your system in the target guild before being able to get
         or update them from the API.
+
         :param guild_id: ID of guild
         :param system_ref: can be a system's short (5-character) ID, a system's UUID, the ID of a Discord account
             linked to the system, or the string @me to refer to the currently authenticated system.
@@ -253,6 +263,7 @@ class PKClient:
 
         You must already have updated per-guild settings for your system in the target guild before being able to get
         or update them from the API.
+
         :param guild_id: ID of guild
         :param system_ref: can be a system's short (5-character) ID, a system's UUID, the ID of a Discord account
             linked to the system, or the string @me to refer to the currently authenticated system.
@@ -366,6 +377,7 @@ class PKClient:
     async def get_member(self, member_ref: str) -> PKMember:
         """
         https://pluralkit.me/api/endpoints/#get-member
+
         :param member_ref: can be a member's short (5-character ID) or a member's UUID
         :return: a member object
         """
@@ -406,7 +418,7 @@ class PKClient:
         :param avatar_url:
         :param banner:
         :param description:
-        :return:
+        :return: a member object
         """
         payload = {}
         if name is not MISSING:
@@ -446,6 +458,7 @@ class PKClient:
     async def delete_member(self, member_ref: str):
         """
         https://pluralkit.me/api/endpoints/#delete-member
+
         :param member_ref: can be a member's short (5-character ID) or a member's UUID
         """
         ret = await self._request("DELETE", f"members/{member_ref}", return_code=True)

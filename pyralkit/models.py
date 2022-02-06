@@ -4,22 +4,45 @@ from dataclasses import dataclass
 from enum import Enum
 
 
+class PKModel:
+    """base class for all models"""
+
+    pass
+
+
 @dataclass
-class PKProxyTag:
-    # https://pluralkit.me/api/models/#proxytag-object
+class PKProxyTag(PKModel):
+    """
+    https://pluralkit.me/api/models/#proxytag-object
+    Note: prefix + "text" + suffix must be shorter than 100 characters in total.
+
+    :param prefix: text before your message to trigger the proxy
+    :param suffix: text after your message to trigger the proxy
+    """
+
     prefix: typing.Optional[str] = None
     suffix: typing.Optional[str] = None
 
 
-class PKPrivacy(str, Enum):
-    # https://pluralkit.me/api/models/#models
+class PKPrivacy(PKModel, Enum):
+    """https://pluralkit.me/api/models/#models"""
+
     public = "public"
     private = "private"
 
 
 @dataclass
-class PKSystemPrivacy:
-    # https://pluralkit.me/api/models/#system-model
+class PKSystemPrivacy(PKModel):
+    """
+    https://pluralkit.me/api/models/#system-model
+
+    :param description_privacy: System description
+    :param member_list_privacy: Member list
+    :param group_list_privacy: Group list
+    :param front_privacy: Current fronter
+    :param front_history_privacy: Front history
+    """
+
     description_privacy: PKPrivacy
     member_list_privacy: PKPrivacy
     group_list_privacy: PKPrivacy
@@ -28,16 +51,33 @@ class PKSystemPrivacy:
 
     @classmethod
     def all_public(cls):
+        """Initialize class with all privacy values set to public"""
         return cls(*([PKPrivacy.public] * 5))
 
     @classmethod
     def all_private(cls):
+        """Initialize class with all privacy values set to private"""
         return cls(*([PKPrivacy.private] * 5))
 
 
 @dataclass
-class PKSystem:
-    # https://pluralkit.me/api/models/#system-model
+class PKSystem(PKModel):
+    """
+    https://pluralkit.me/api/models/#system-model
+
+    :param id: a short (5-character) ID. The short ID is unique across the resource (a member can have the same short
+        ID as a system, for example)
+    :param uuid: a longer UUID. the UUID is consistent for the lifetime of the entity and globally unique across the
+        bot.
+    :param created: datetime of creation
+    :param name: system name
+    :param tag: a little snippet of text that'll be added to the end of all proxied messages
+    :param color: system color
+    :param description: system description
+    :param avatar_url: System avatar url
+    :param banner: System banner url
+    :param privacy: System privacy settings
+    """
     id: str
     uuid: str
     created: datetime.datetime
@@ -51,7 +91,7 @@ class PKSystem:
 
 
 @dataclass
-class PKMemberPrivacy:
+class PKMemberPrivacy(PKModel):
     # https://pluralkit.me/api/models/#member-model
     visibility: PKPrivacy
     name_privacy: PKPrivacy
@@ -63,15 +103,17 @@ class PKMemberPrivacy:
 
     @classmethod
     def all_public(cls):
+        """Initialize class with all privacy values set to public"""
         return cls(*([PKPrivacy.public] * 7))
 
     @classmethod
     def all_private(cls):
+        """Initialize class with all privacy values set to private"""
         return cls(*([PKPrivacy.private] * 7))
 
 
 @dataclass
-class PKMember:
+class PKMember(PKModel):
     # https://pluralkit.me/api/models/#member-model
     id: str
     uuid: str
@@ -90,7 +132,7 @@ class PKMember:
 
 
 @dataclass
-class PKMessage:
+class PKMessage(PKModel):
     # https://pluralkit.me/api/models/#message-model
     timestamp: datetime.datetime
     id: int
@@ -103,7 +145,7 @@ class PKMessage:
 
 
 @dataclass
-class PKGroupPrivacy:
+class PKGroupPrivacy(PKModel):
     # https://pluralkit.me/api/models/#group-model
     name_privacy: PKPrivacy
     description_privacy: PKPrivacy
@@ -114,15 +156,17 @@ class PKGroupPrivacy:
 
     @classmethod
     def all_public(cls):
+        """Initialize class with all privacy values set to public"""
         return cls(*([PKPrivacy.public] * 6))
 
     @classmethod
     def all_private(cls):
+        """Initialize class with all privacy values set to private"""
         return cls(*([PKPrivacy.private] * 6))
 
 
 @dataclass
-class PKGroup:
+class PKGroup(PKModel):
     # https://pluralkit.me/api/models/#group-model
     id: str
     uuid: str
@@ -138,7 +182,7 @@ class PKGroup:
 
 
 @dataclass
-class PKSwitch:
+class PKSwitch(PKModel):
     # https://pluralkit.me/api/models/#switch-model
     id: str
     timestamp: datetime.datetime
@@ -146,7 +190,7 @@ class PKSwitch:
 
 
 @dataclass
-class PKSystemSettings:
+class PKSystemSettings(PKModel):
     # https://pluralkit.me/api/models/#system-settings-model
     timezone: str
     pings_enabled: bool
@@ -158,7 +202,7 @@ class PKSystemSettings:
     group_limit: int = 250
 
 
-class PKAutoproxyMode(str, Enum):
+class PKAutoproxyMode(PKModel, Enum):
     # https://pluralkit.me/api/models/#autoproxy-mode-enum
     off = "off"
     front = "front"
@@ -167,7 +211,7 @@ class PKAutoproxyMode(str, Enum):
 
 
 @dataclass
-class PKSystemGuildSettings:
+class PKSystemGuildSettings(PKModel):
     # https://pluralkit.me/api/models/#system-guild-settings-model
     guild_id: int
     proxying_enabled: bool
@@ -178,7 +222,7 @@ class PKSystemGuildSettings:
 
 
 @dataclass
-class PKMemberGuildSettings:
+class PKMemberGuildSettings(PKModel):
     # https://pluralkit.me/api/models/#member-guild-settings-model
     guild_id: int
     display_name: typing.Optional[str] = None

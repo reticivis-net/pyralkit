@@ -32,11 +32,13 @@ class PKErrorObject:
 class PKErrorResponse(PKException):
     """https://pluralkit.me/api/errors/#error-response-model"""
 
-    code: int
-    message: str
-    http_code: int
-    errors: typing.Optional[typing.List[PKErrorObject]] = None
-    retry_after: typing.Optional[int] = None
+    code: int  # numerical error code
+    message: str  # description of the error
+    http_code: int  # HTTP response code
+    errors: typing.Optional[typing.List[PKErrorObject]] = None  # details on the error
+    retry_after: typing.Optional[
+        int
+    ] = None  # if this is a rate limit error, the number of milliseconds after which you can retry the request
 
     def __post_init__(self):
         super().__init__(f"Error {self.code}: {self.message}")
